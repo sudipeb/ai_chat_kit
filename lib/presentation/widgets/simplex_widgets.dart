@@ -146,20 +146,28 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                isUser ? Icons.person_outline : Icons.smart_toy_outlined,
-                                color: Colors.grey[600],
-                                size: 20,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  text,
-                                  style: const TextStyle(fontSize: 16, height: 1.5),
-                                ),
-                              ),
-                            ],
+                            children: isUser
+                                ? [
+                                    Expanded(
+                                      child: Text(
+                                        text,
+                                        style: const TextStyle(fontSize: 16, height: 1.5),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Icon(Icons.person_outline, color: Colors.grey[600], size: 20),
+                                  ]
+                                : [
+                                    Icon(Icons.smart_toy_outlined, color: Colors.grey[600], size: 20),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        text,
+                                        style: const TextStyle(fontSize: 16, height: 1.5),
+                                      ),
+                                    ),
+                                  ],
                           ),
                         );
                       },
