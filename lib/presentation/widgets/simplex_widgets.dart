@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/models/chat_message.dart';
 
@@ -63,17 +62,6 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     }
   }
 
-  /// Copies the provided text to the clipboard and shows a snackbar.
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Copied to clipboard!'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,19 +76,26 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                 final message = widget.messages[widget.messages.length - 1 - index];
                 final isUser = message.role == MessageRole.user;
 
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: GestureDetector(
-                    onLongPress: () => _copyToClipboard(message.text),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isUser ? Colors.blue[100] : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isUser ? 'You' : 'AI',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
-                      child: Text(message.text),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        message.text,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const Divider(),
+                    ],
                   ),
                 );
               },
