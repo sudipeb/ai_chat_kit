@@ -142,8 +142,7 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                         final text = isUser ? message.text : _normalizeText(message.text);
 
                         return Container(
-                          color: isUser ? Colors.transparent : Colors.grey[100],
-                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                           child: Column(
                             crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                             children: [
@@ -153,20 +152,35 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                                   Icon(
                                     isUser ? Icons.person_outline : Icons.smart_toy_outlined,
                                     color: Colors.grey[600],
-                                    size: 20,
+                                    size: 16,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     isUser ? 'You' : 'AI',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                text,
-                                style: const TextStyle(fontSize: 16, height: 1.5),
-                                textAlign: isUser ? TextAlign.right : TextAlign.left,
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isUser ? Colors.blue[500] : Colors.grey[200],
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(0),
+                                    bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(16),
+                                  ),
+                                ),
+                                child: Text(
+                                  text,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    height: 1.4,
+                                    color: isUser ? Colors.white : Colors.black87,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
