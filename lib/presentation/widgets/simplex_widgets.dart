@@ -62,6 +62,15 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     }
   }
 
+  /// Normalizes the AI message text by removing markdown headers and extra spacing.
+  String _normalizeText(String text) {
+    // Remove markdown headers (e.g., #, ##)
+    String normalized = text.replaceAll(RegExp(r'^#+\s+', multiLine: true), '');
+    // Clean up excessive newlines
+    normalized = normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    return normalized.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +84,7 @@ class _SimplexChatViewState extends State<SimplexChatView> {
               itemBuilder: (context, index) {
                 final message = widget.messages[widget.messages.length - 1 - index];
                 final isUser = message.role == MessageRole.user;
+                final text = isUser ? message.text : _normalizeText(message.text);
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -91,7 +101,7 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        message.text,
+                        text,
                         style: const TextStyle(fontSize: 16),
                       ),
                       const Divider(),
