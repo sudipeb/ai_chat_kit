@@ -70,6 +70,8 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     normalized = normalized.replaceAllMapped(RegExp(r'\*\*([^*]+)\*\*'), (match) {
       return match.group(1) ?? '';
     });
+    // Replace markdown list markers (*, -) with a bullet dot (•)
+    normalized = normalized.replaceAll(RegExp(r'^\s*[\*\-]\s+', multiLine: true), '• ');
     // Clean up excessive newlines
     normalized = normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     return normalized.trim();
@@ -90,25 +92,24 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                 final isUser = message.role == MessageRole.user;
                 final text = isUser ? message.text : _normalizeText(message.text);
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: Column(
+                return Container(
+                  color: isUser ? Colors.transparent : Colors.grey[100],
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        isUser ? 'You' : 'AI',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Colors.grey,
+                      Icon(
+                        isUser ? Icons.person_outline : Icons.smart_toy_outlined,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          text,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        text,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const Divider(),
                     ],
                   ),
                 );
