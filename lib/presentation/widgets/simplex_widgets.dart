@@ -144,30 +144,31 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                         return Container(
                           color: isUser ? Colors.transparent : Colors.grey[100],
                           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: isUser
-                                ? [
-                                    Expanded(
-                                      child: Text(
-                                        text,
-                                        style: const TextStyle(fontSize: 16, height: 1.5),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Icon(Icons.person_outline, color: Colors.grey[600], size: 20),
-                                  ]
-                                : [
-                                    Icon(Icons.smart_toy_outlined, color: Colors.grey[600], size: 20),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        text,
-                                        style: const TextStyle(fontSize: 16, height: 1.5),
-                                      ),
-                                    ),
-                                  ],
+                          child: Column(
+                            crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    isUser ? Icons.person_outline : Icons.smart_toy_outlined,
+                                    color: Colors.grey[600],
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isUser ? 'You' : 'AI',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                text,
+                                style: const TextStyle(fontSize: 16, height: 1.5),
+                                textAlign: isUser ? TextAlign.right : TextAlign.left,
+                              ),
+                            ],
                           ),
                         );
                       },
