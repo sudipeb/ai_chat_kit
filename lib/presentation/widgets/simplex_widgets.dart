@@ -62,10 +62,14 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     }
   }
 
-  /// Normalizes the AI message text by removing markdown headers and extra spacing.
+  /// Normalizes the AI message text by removing markdown headers, bolding, and extra spacing.
   String _normalizeText(String text) {
     // Remove markdown headers (e.g., #, ##)
     String normalized = text.replaceAll(RegExp(r'^#+\s+', multiLine: true), '');
+    // Remove markdown bolding (e.g., **text**)
+    normalized = normalized.replaceAllMapped(RegExp(r'\*\*([^*]+)\*\*'), (match) {
+      return match.group(1) ?? '';
+    });
     // Clean up excessive newlines
     normalized = normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     return normalized.trim();
