@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
 class MockAIProvider implements AIModelProvider {
   @override
   Future<String> sendMessage({
+    required String model,
     required String prompt,
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
@@ -34,16 +35,13 @@ class MockAIProvider implements AIModelProvider {
     await Future.delayed(const Duration(seconds: 1));
 
     if (prompt.toLowerCase().contains('hello')) {
-      return 'Hello! I am a mock AI. How can I help you today?';
+      return 'Hello! I am a mock AI (Model: $model). How can I help you today?';
     } else if (prompt.toLowerCase().contains('who are you')) {
       return 'I am the AI Chat Kit demo provider.';
     } else {
-      return 'You said: "$prompt". This is a response from the mock AI.';
+      return 'You said: "$prompt" to model "$model". This is a response from the mock AI.';
     }
   }
-
-  @override
-  String get modelName => "mock-ai-model";
 }
 
 class ChatExampleScreen extends StatelessWidget {
@@ -57,7 +55,10 @@ class ChatExampleScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: BlocProvider(
-        create: (context) => ChatCubit(MockAIProvider()),
+        create: (context) => ChatCubit(
+          provider: MockAIProvider(),
+          model: 'mock-gpt-4',
+        ),
         child: const ChatPage(),
       ),
     );

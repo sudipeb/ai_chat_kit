@@ -19,10 +19,18 @@ abstract class SimplexBlocView<B extends StateStreamableSource<S>, S> extends St
   Widget buildWidget(BuildContext context, B bloc, S state);
 }
 
-/// A standard chat view component.
+/// A reusable chat interface component.
+///
+/// Provides a message list view, message bubble styling, and a text input field
+/// for sending new messages. Handles user interaction and message dispatching.
 class SimplexChatView extends StatefulWidget {
+  /// The list of chat messages to display.
   final List<ChatMessage> messages;
+
+  /// Callback function triggered when a user sends a message.
   final void Function(String) onSend;
+
+  /// Whether the UI should show a loading indicator.
   final bool isLoading;
 
   const SimplexChatView({
@@ -45,6 +53,7 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     super.dispose();
   }
 
+  /// Dispatches the current text input and clears the controller.
   void _handleSend() {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {

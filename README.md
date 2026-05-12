@@ -46,16 +46,15 @@ import 'package:ai_chat_kit/ai_chat_kit.dart';
 class MyAIProvider implements AIModelProvider {
   @override
   Future<String> sendMessage({
+    required String model,
     required String prompt,
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
   }) async {
     // Implement your API call logic here
+    // Use the 'model' parameter to specify which model to use for this call
     return "This is a response from the AI.";
   }
-
-  @override
-  String get modelName => "my-custom-ai";
 }
 ```
 
@@ -71,7 +70,10 @@ class MyChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ChatCubit(MyAIProvider()),
+      create: (context) => ChatCubit(
+        provider: MyAIProvider(),
+        model: 'gpt-4',
+      ),
       child: const ChatPage(),
     );
   }

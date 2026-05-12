@@ -3,11 +3,18 @@ import '../../core/models/chat_message.dart';
 import '../../domain/entities/ai_model_provider.dart';
 import 'chat_state.dart';
 
+/// Manages the state and business logic of a chat conversation.
 class ChatCubit extends Cubit<ChatState> {
   final AIModelProvider provider;
+  final String model;
 
-  ChatCubit(this.provider) : super(const ChatInitial());
+  /// Initializes the cubit with the given [provider] and [model].
+  ChatCubit({
+    required this.provider,
+    required this.model,
+  }) : super(const ChatInitial());
 
+  /// Sends a text message to the AI and manages the chat state.
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
@@ -23,6 +30,7 @@ class ChatCubit extends Cubit<ChatState> {
 
     try {
       final responseText = await provider.sendMessage(
+        model: model,
         prompt: text,
         history: state.messages,
       );

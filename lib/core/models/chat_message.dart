@@ -1,11 +1,23 @@
 import 'package:equatable/equatable.dart';
 
-enum MessageRole { user, ai, system }
+/// The role of the sender in a chat conversation.
+enum MessageRole { 
 
+  user, 
+
+  ai, 
+
+  system 
+}
+
+/// Represents an optional file or data attachment to a chat message.
 class ChatAttachment extends Equatable {
   final String id;
+
   final String url;
+
   final String type;
+
   final String? name;
 
   const ChatAttachment({
@@ -19,12 +31,19 @@ class ChatAttachment extends Equatable {
   List<Object?> get props => [id, url, type, name];
 }
 
+/// Represents a single message in a chat conversation.
 class ChatMessage extends Equatable {
+
   final String id;
+
   final String text;
+
   final MessageRole role;
+
   final DateTime createdAt;
+
   final List<ChatAttachment>? attachments;
+
   final Map<String, dynamic>? metadata;
   final bool isStreaming;
 
@@ -49,6 +68,7 @@ class ChatMessage extends Equatable {
         isStreaming,
       ];
 
+  /// Creates a copy of this [ChatMessage] with updated fields.
   ChatMessage copyWith({
     String? id,
     String? text,

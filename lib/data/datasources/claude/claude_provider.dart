@@ -5,20 +5,16 @@ import '../../../domain/entities/ai_model_provider.dart';
 
 class ClaudeProvider implements AIModelProvider {
   final String apiKey;
-  final String model;
   final String baseUrl;
 
   ClaudeProvider({
     required this.apiKey,
-    this.model = 'claude-3-sonnet-20240229',
     this.baseUrl = 'https://api.anthropic.com/v1',
   });
 
   @override
-  String get modelName => model;
-
-  @override
   Future<String> sendMessage({
+    required String model,
     required String prompt,
     required List<ChatMessage> history,
     Map<String, dynamic>? options,

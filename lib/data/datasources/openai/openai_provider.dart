@@ -5,20 +5,16 @@ import '../../../domain/entities/ai_model_provider.dart';
 
 class OpenAIProvider implements AIModelProvider {
   final String apiKey;
-  final String model;
   final String baseUrl;
 
   OpenAIProvider({
     required this.apiKey,
-    this.model = 'gpt-4',
     this.baseUrl = 'https://api.openai.com/v1',
   });
 
   @override
-  String get modelName => model;
-
-  @override
   Future<String> sendMessage({
+    required String model,
     required String prompt,
     required List<ChatMessage> history,
     Map<String, dynamic>? options,

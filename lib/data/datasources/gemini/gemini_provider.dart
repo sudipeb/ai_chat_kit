@@ -5,20 +5,16 @@ import '../../../domain/entities/ai_model_provider.dart';
 
 class GeminiProvider implements AIModelProvider {
   final String apiKey;
-  final String model;
   final String baseUrl;
 
   GeminiProvider({
     required this.apiKey,
-    this.model = 'gemini-1.5-pro',
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta',
   });
 
   @override
-  String get modelName => model;
-
-  @override
   Future<String> sendMessage({
+    required String model,
     required String prompt,
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
@@ -45,10 +41,7 @@ class GeminiProvider implements AIModelProvider {
     return data['candidates'][0]['content']['parts'][0]['text'] as String;
   }
 
-  List<Map<String, dynamic>> _buildContents(
-    List<ChatMessage> history,
-    String prompt,
-  ) {
+  List<Map<String, dynamic>> _buildContents(List<ChatMessage> history, String prompt) {
     final contents = <Map<String, dynamic>>[];
 
     for (final msg in history) {
