@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/chat_message.dart';
 
 /// A base class for views that use a BLoC/Cubit.
@@ -47,6 +50,42 @@ class SimplexChatView extends StatefulWidget {
 class _SimplexChatViewState extends State<SimplexChatView> {
   final TextEditingController _controller = TextEditingController();
 
+  /// Saves the current list of messages to local storage.
+  Future<void> _saveMessages(List<ChatMessage> messages) async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = messages.map((m) => jsonEncode({
+      'id': m.id,
+      'text': m.text,
+      'role': m.role.toString(),
+      'createdAt': m.createdAt.toIso8601String(),
+    })).toList();
+    await prefs.setStringList('chat_history', data);
+  }
+
+  /// Loads the saved chat history from local storage.
+  Future<List<ChatMessage>> _loadMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getStringList('chat_history') ?? [];
+    return data.map((jsonStr) {
+      final map = jsonDecode(jsonStr);
+      return ChatMessage(
+        id: map['id'],
+        text: map['text'],
+        role: MessageRole.values.firstWhere((e) => e.toString() == map['role']),
+        createdAt: DateTime.parse(map['createdAt']),
+      );
+    }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages().then((loaded) {
+      // Logic to sync loaded messages with Cubit would be needed
+      // Currently, we're just ensuring persistence infrastructure is available
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -80,6 +119,10 @@ class _SimplexChatViewState extends State<SimplexChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('AI Chat Assistant'),
+        centerTitle: true,
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final maxWidth = constraints.maxWidth > 800 ? 800.0 : constraints.maxWidth;
