@@ -80,70 +80,80 @@ class _SimplexChatViewState extends State<SimplexChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              reverse: true,
-              itemCount: widget.messages.length,
-              itemBuilder: (context, index) {
-                final message = widget.messages[widget.messages.length - 1 - index];
-                final isUser = message.role == MessageRole.user;
-                final text = isUser ? message.text : _normalizeText(message.text);
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth > 800 ? 800.0 : constraints.maxWidth;
+          return Center(
+            child: SizedBox(
+              width: maxWidth,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      reverse: true,
+                      itemCount: widget.messages.length,
+                      itemBuilder: (context, index) {
+                        final message = widget.messages[widget.messages.length - 1 - index];
+                        final isUser = message.role == MessageRole.user;
+                        final text = isUser ? message.text : _normalizeText(message.text);
 
-                return Container(
-                  color: isUser ? Colors.transparent : Colors.grey[100],
-                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        isUser ? Icons.person_outline : Icons.smart_toy_outlined,
-                        color: Colors.grey[600],
-                        size: 20,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          text,
-                          style: const TextStyle(fontSize: 16, height: 1.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          if (widget.isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: CircularProgressIndicator(),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(),
+                        return Container(
+                          color: isUser ? Colors.transparent : Colors.grey[100],
+                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                isUser ? Icons.person_outline : Icons.smart_toy_outlined,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  text,
+                                  style: const TextStyle(fontSize: 16, height: 1.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                    onSubmitted: (_) => _handleSend(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _handleSend,
-                ),
-              ],
+                  if (widget.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: const InputDecoration(
+                              hintText: 'Type a message...',
+                              border: OutlineInputBorder(),
+                            ),
+                            onSubmitted: (_) => _handleSend(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.send),
+                          onPressed: _handleSend,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
