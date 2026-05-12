@@ -1,10 +1,10 @@
 name: ai_chat_kit_example
 description: "Demonstrates how to use the ai_chat_kit package."
-publish_to: 'none'
+publish_to: "none"
 
 environment:
-  sdk: ^3.11.0
-  flutter: ">=1.17.0"
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -17,7 +17,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.2
 
 flutter:
   uses-material-design: true

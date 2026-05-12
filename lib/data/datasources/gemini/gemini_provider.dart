@@ -1,16 +1,14 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../../core/models/chat_message.dart';
-import '../../../domain/entities/ai_model_provider.dart';
+import 'package:ai_chat_kit/core/models/chat_message.dart';
+import 'package:ai_chat_kit/domain/entities/ai_model_provider.dart';
+import 'package:dio/dio.dart';
 
 class GeminiProvider implements AIModelProvider {
   final String apiKey;
   final String baseUrl;
+  final Dio dio;
 
-  GeminiProvider({
-    required this.apiKey,
-    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta',
-  });
+  GeminiProvider({required this.apiKey, this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta', Dio? dio})
+    : dio = dio ?? Dio();
 
   @override
   Future<String> sendMessage({
@@ -19,47 +17,50 @@ class GeminiProvider implements AIModelProvider {
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
   }) async {
-    final contents = _buildContents(history, prompt);
+    final messages = _buildMessages(history, prompt);
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/models/$model:generateContent?key=$apiKey'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'contents': contents,
-        'generationConfig': {
-          'temperature': options?['temperature'] ?? 0.9,
-          'maxOutputTokens': options?['max_tokens'] ?? 2048,
-        },
-      }),
+    final response = await dio.post(
+      '$baseUrl/messages',
+      data: {
+        'model': model,
+        'messages': messages,
+        'temperature': options?['temperature'] ?? 0.7,
+        'max_tokens': options?['max_tokens'] ?? 1024,
+      },
+      options: Options(
+        headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},
+      ),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Gemini API error: ${response.body}');
+      throw Exception('Gemini API error: ${response.data}');
     }
 
-    final data = jsonDecode(response.body);
-    return data['candidates'][0]['content']['parts'][0]['text'] as String;
+    final data = response.data as Map<String, dynamic>;
+    return data['content'][0]['text'] as String;
   }
 
-  List<Map<String, dynamic>> _buildContents(List<ChatMessage> history, String prompt) {
-    final contents = <Map<String, dynamic>>[];
+  List<Map<String, String>> _buildMessages(List<ChatMessage> history, String prompt) {
+    final messages = <Map<String, String>>[];
 
     for (final msg in history) {
-      contents.add({
-        'role': msg.role == MessageRole.user ? 'user' : 'model',
-        'parts': [
-          {'text': msg.text},
-        ],
-      });
+      String roleString;
+      switch (msg.role) {
+        case MessageRole.user:
+          roleString = 'user';
+          break;
+        case MessageRole.ai:
+          roleString = 'assistant';
+          break;
+        case MessageRole.system:
+          roleString = 'system';
+          break;
+      }
+      messages.add({'role': roleString, 'content': msg.text});
     }
 
-    contents.add({
-      'role': 'user',
-      'parts': [
-        {'text': prompt},
-      ],
-    });
+    messages.add({'role': 'user', 'content': prompt});
 
-    return contents;
+    return messages;
   }
 }
