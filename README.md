@@ -5,6 +5,7 @@ A modular Flutter package designed to provide a unified interface for interactin
 ## Features
 
 - 🧠 **Multi-model abstraction layer**: Support multiple AI providers through a single, clean API.
+- ⚡ **Interactive Streaming**: Support for real-time, dynamic responses (typewriter effect) across OpenAI, Gemini, and Claude.
 - 🔄 **BLoC / Cubit State Management**: Robust and predictable state handling for chat interactions.
 - 🎨 **Simplex UI Components**: Reusable, customizable UI components for building chat interfaces quickly.
 - 🔑 **Flexible Configuration**: Per-provider API key management and configuration.

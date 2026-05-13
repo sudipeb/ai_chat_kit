@@ -3,21 +3,20 @@ description: "Demonstrates how to use the ai_chat_kit package."
 publish_to: "none"
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.0.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.8.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   ai_chat_kit:
     path: ../
-  flutter_bloc: ^9.0.0
-  provider: ^6.1.5+1
+  flutter_bloc: ^9.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.2
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

@@ -11,6 +11,7 @@ class ChatPage extends SimplexBlocView<ChatCubit, ChatState> {
     return SimplexChatView(
       messages: state.messages,
       onSend: cubit.sendMessage,
+      onClear: cubit.clearChat,
       isLoading: state is ChatLoading,
       isStreaming: state is ChatStreaming,
       error: state is ChatError ? state.error : null,

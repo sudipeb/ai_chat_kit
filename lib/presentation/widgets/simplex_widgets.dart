@@ -40,10 +40,14 @@ class SimplexChatView extends StatefulWidget {
   /// Optional error message to display in the chat UI.
   final String? error;
 
+  /// Optional callback function triggered when a user clears the chat.
+  final VoidCallback? onClear;
+
   const SimplexChatView({
     super.key,
     required this.messages,
     required this.onSend,
+    this.onClear,
     this.isLoading = false,
     this.isStreaming = false,
     this.error,
@@ -143,7 +147,18 @@ class _SimplexChatViewState extends State<SimplexChatView> {
       'Chat view rebuilding: ${widget.messages.length} messages, loading: ${widget.isLoading}, error: ${widget.error != null}',
     );
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Chat Assistant'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('AI Chat Assistant'),
+        centerTitle: true,
+        actions: [
+          if (widget.onClear != null && widget.messages.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Clear Chat',
+              onPressed: widget.onClear,
+            ),
+        ],
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final maxWidth = constraints.maxWidth > 800 ? 800.0 : constraints.maxWidth;

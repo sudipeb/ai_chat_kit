@@ -25,7 +25,7 @@ class ChatCubit extends Cubit<ChatState> {
 
     final updatedMessages = List<ChatMessage>.from(state.messages)..add(userMessage);
     _logState('Transition ${state.runtimeType} -> ChatLoading');
-    emit(ChatLoading(updatedMessages));
+    emit(ChatLoading(messages: updatedMessages));
 
     try {
       final aiMessageId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
@@ -53,18 +53,24 @@ class ChatCubit extends Cubit<ChatState> {
         }
 
         _logState('Transition -> ChatStreaming');
-        emit(ChatStreaming(messagesWithAi));
+        emit(ChatStreaming(messages: messagesWithAi));
       }
 
       _logState('Transition ChatStreaming -> ChatSuccess');
-      emit(ChatSuccess(state.messages));
+      emit(ChatSuccess(messages: state.messages));
     } catch (e) {
       _logState('Transition -> ChatError: $e');
-      emit(ChatError(e.toString(), updatedMessages));
+      emit(ChatError(error: e.toString(), messages: updatedMessages));
     }
   }
 
   void _logState(String message) {
     AIChatLogger.log(message);
+  }
+
+  /// Clears the chat history.
+  void clearChat() {
+    _logState('Clearing chat history');
+    emit(const ChatInitial());
   }
 }
