@@ -17,50 +17,61 @@ class GeminiProvider implements AIModelProvider {
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
   }) async {
-    final messages = _buildMessages(history, prompt);
+    final url = '$baseUrl/models/$model:generateContent?key=$apiKey';
 
-    final response = await dio.post(
-      '$baseUrl/messages',
-      data: {
-        'model': model,
-        'messages': messages,
-        'temperature': options?['temperature'] ?? 0.7,
-        'max_tokens': options?['max_tokens'] ?? 1024,
-      },
-      options: Options(
-        headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},
-      ),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Gemini API error: ${response.data}');
-    }
-
-    final data = response.data as Map<String, dynamic>;
-    return data['content'][0]['text'] as String;
-  }
-
-  List<Map<String, String>> _buildMessages(List<ChatMessage> history, String prompt) {
-    final messages = <Map<String, String>>[];
-
+    final contents = <Map<String, dynamic>>[];
     for (final msg in history) {
-      String roleString;
-      switch (msg.role) {
-        case MessageRole.user:
-          roleString = 'user';
-          break;
-        case MessageRole.ai:
-          roleString = 'assistant';
-          break;
-        case MessageRole.system:
-          roleString = 'system';
-          break;
-      }
-      messages.add({'role': roleString, 'content': msg.text});
+      contents.add({
+        'role': msg.role == MessageRole.user ? 'user' : 'model',
+        'parts': [
+          {'text': msg.text},
+        ],
+      });
     }
+    contents.add({
+      'role': 'user',
+      'parts': [
+        {'text': prompt},
+      ],
+    });
 
-    messages.add({'role': 'user', 'content': prompt});
+    int retryCount = 0;
+    const maxRetries = 3;
+    Duration retryDelay = const Duration(seconds: 1);
 
-    return messages;
+    while (true) {
+      try {
+        final response = await dio.post(
+          url,
+          data: {
+            'contents': contents,
+            'generationConfig': {
+              'temperature': options?['temperature'] ?? 0.9,
+              'maxOutputTokens': options?['max_tokens'] ?? 2048,
+            },
+          },
+          options: Options(headers: {'Content-Type': 'application/json'}),
+        );
+
+        if (response.statusCode == 503 && retryCount < maxRetries) {
+          retryCount++;
+          await Future.delayed(retryDelay);
+          retryDelay *= 2;
+          continue;
+        }
+
+        if (response.statusCode != 200) {
+          throw Exception('Gemini API Error ${response.statusCode}: ${response.data}');
+        }
+
+        final data = response.data as Map<String, dynamic>;
+        return data['candidates'][0]['content']['parts'][0]['text'] as String;
+      } catch (e) {
+        if (retryCount >= maxRetries) {
+          rethrow;
+        }
+        rethrow;
+      }
+    }
   }
 }

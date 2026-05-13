@@ -18,25 +18,45 @@ class OpenAIProvider implements AIModelProvider {
   }) async {
     final messages = _buildMessages(history, prompt);
 
-    final response = await dio.post(
-      '$baseUrl/messages',
-      data: {
-        'model': model,
-        'messages': messages,
-        'temperature': options?['temperature'] ?? 0.7,
-        'max_tokens': options?['max_tokens'] ?? 1024,
-      },
-      options: Options(
-        headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},
-      ),
-    );
+    int retryCount = 0;
+    const maxRetries = 3;
+    Duration retryDelay = const Duration(seconds: 1);
 
-    if (response.statusCode != 200) {
-      throw Exception('OpenAI API error: ${response.data}');
+    while (true) {
+      try {
+        final response = await dio.post(
+          '$baseUrl/chat/completions',
+          data: {
+            'model': model,
+            'messages': messages,
+            'temperature': options?['temperature'] ?? 0.7,
+            'max_tokens': options?['max_tokens'] ?? 1024,
+          },
+          options: Options(
+            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
+          ),
+        );
+
+        if (response.statusCode == 503 && retryCount < maxRetries) {
+          retryCount++;
+          await Future.delayed(retryDelay);
+          retryDelay *= 2;
+          continue;
+        }
+
+        if (response.statusCode != 200) {
+          throw Exception('OpenAI API Error ${response.statusCode}: ${response.data}');
+        }
+
+        final data = response.data as Map<String, dynamic>;
+        return data['choices'][0]['message']['content'] as String;
+      } catch (e) {
+        if (retryCount >= maxRetries) {
+          rethrow;
+        }
+        rethrow;
+      }
     }
-
-    final data = response.data as Map<String, dynamic>;
-    return data['content'][0]['text'] as String;
   }
 
   List<Map<String, String>> _buildMessages(List<ChatMessage> history, String prompt) {
