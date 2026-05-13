@@ -4,6 +4,7 @@ library;
 export 'ai_chat.dart';
 
 // Core components
+export 'core/logger/ai_chat_logger.dart';
 export 'core/models/chat_message.dart';
 export 'core/config/ai_config.dart';
 export 'domain/entities/ai_model_provider.dart';

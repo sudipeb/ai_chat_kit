@@ -1,3 +1,4 @@
+import 'package:ai_chat_kit/core/logger/ai_chat_logger.dart';
 import 'package:ai_chat_kit/core/models/chat_message.dart';
 import 'package:ai_chat_kit/data/datasources/claude/claude_provider.dart';
 import 'package:ai_chat_kit/data/datasources/gemini/gemini_provider.dart';
@@ -80,6 +81,19 @@ class AIChat {
 
   /// Get conversation history
   List<ChatMessage> getHistory() => List.unmodifiable(_history);
+
+  /// Enable printing state changes from the package directly.
+  ///
+  /// This does not rely on a third-party observer. It enables internal
+  /// package logging so users can see chat state transitions in the console.
+  static void enableStateLogging() {
+    AIChatLogger.enable();
+  }
+
+  /// Disable internal logging.
+  static void disableStateLogging() {
+    AIChatLogger.disable();
+  }
 
   /// Auto-detect provider based on token format
   static AIProvider _autoDetectProvider(String token) {
