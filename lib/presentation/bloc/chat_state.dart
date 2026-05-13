@@ -22,6 +22,11 @@ class ChatLoading extends ChatState {
   const ChatLoading(super.messages);
 }
 
+/// State indicating that the message is being received in chunks.
+class ChatStreaming extends ChatState {
+  const ChatStreaming(super.messages);
+}
+
 /// State indicating that the message was processed successfully.
 class ChatSuccess extends ChatState {
   const ChatSuccess(super.messages);

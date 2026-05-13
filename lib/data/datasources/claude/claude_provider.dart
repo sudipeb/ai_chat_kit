@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ai_chat_kit/core/models/chat_message.dart';
 import 'package:ai_chat_kit/domain/entities/ai_model_provider.dart';
 import 'package:dio/dio.dart';
@@ -25,14 +28,18 @@ class ClaudeProvider implements AIModelProvider {
     while (true) {
       try {
         final response = await dio.post(
-          '$baseUrl/chat/completions',
+          '$baseUrl/messages',
           data: {
             'model': model,
             'messages': messages,
-            'temperature': options?['temperature'] ?? 0.7,
             'max_tokens': options?['max_tokens'] ?? 1024,
+            'temperature': options?['temperature'] ?? 0.7,
           },
-          options: Options(headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'}),
+          options: Options(headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          }),
         );
 
         if (response.statusCode == 503 && retryCount < maxRetries) {
@@ -47,14 +54,9 @@ class ClaudeProvider implements AIModelProvider {
         }
 
         final data = response.data as Map<String, dynamic>;
-        final message = data['choices']?[0]?['message']?['content'];
-        if (message is String) {
-          return message;
-        }
-
-        final fallback = data['completion'] ?? data['output']?[0]?['content']?[0]?['text'];
-        if (fallback is String) {
-          return fallback;
+        final content = data['content'] as List?;
+        if (content != null && content.isNotEmpty) {
+          return content[0]['text'] as String;
         }
 
         throw Exception('Claude response parsing failed: ${response.data}');
@@ -67,10 +69,72 @@ class ClaudeProvider implements AIModelProvider {
     }
   }
 
+  @override
+  Stream<String> streamMessage({
+    required String model,
+    required String prompt,
+    required List<ChatMessage> history,
+    Map<String, dynamic>? options,
+  }) async* {
+    final messages = _buildMessages(history, prompt);
+
+    final response = await dio.post(
+      '$baseUrl/messages',
+      data: {
+        'model': model,
+        'messages': messages,
+        'max_tokens': options?['max_tokens'] ?? 1024,
+        'temperature': options?['temperature'] ?? 0.7,
+        'stream': true,
+      },
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        responseType: ResponseType.stream,
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Claude API Error ${response.statusCode}');
+    }
+
+    final responseBody = response.data as ResponseBody;
+    String currentEvent = '';
+
+    await for (final chunk in responseBody.stream.cast<List<int>>().transform(utf8.decoder).transform(const LineSplitter())) {
+      if (chunk.trim().isEmpty) continue;
+
+      if (chunk.startsWith('event: ')) {
+        currentEvent = chunk.substring(7).trim();
+        continue;
+      }
+
+      if (chunk.startsWith('data: ')) {
+        final data = chunk.substring(6).trim();
+        if (currentEvent == 'content_block_delta') {
+          try {
+            final json = jsonDecode(data) as Map<String, dynamic>;
+            final delta = json['delta']?['text'];
+            if (delta is String) {
+              yield delta;
+            }
+          } catch (_) {}
+        } else if (currentEvent == 'message_stop') {
+          break;
+        }
+      }
+    }
+  }
+
   List<Map<String, String>> _buildMessages(List<ChatMessage> history, String prompt) {
     final messages = <Map<String, String>>[];
 
     for (final msg in history) {
+      if (msg.role == MessageRole.system) continue; // Claude handles system differently, usually a separate param
+
       String roleString;
       switch (msg.role) {
         case MessageRole.user:
@@ -79,9 +143,8 @@ class ClaudeProvider implements AIModelProvider {
         case MessageRole.ai:
           roleString = 'assistant';
           break;
-        case MessageRole.system:
-          roleString = 'system';
-          break;
+        default:
+          roleString = 'user';
       }
       messages.add({'role': roleString, 'content': msg.text});
     }

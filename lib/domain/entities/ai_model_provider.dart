@@ -15,4 +15,17 @@ abstract class AIModelProvider {
     required List<ChatMessage> history,
     Map<String, dynamic>? options,
   });
+
+  /// Sends a prompt to the AI model and returns a stream of response chunks.
+  ///
+  /// [model] is the specific identifier for the model to use.
+  /// [prompt] is the message to send.
+  /// [history] is the list of previous chat messages.
+  /// [options] is an optional map of provider-specific parameters.
+  Stream<String> streamMessage({
+    required String model,
+    required String prompt,
+    required List<ChatMessage> history,
+    Map<String, dynamic>? options,
+  });
 }

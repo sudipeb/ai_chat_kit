@@ -34,10 +34,20 @@ class SimplexChatView extends StatefulWidget {
   /// Whether the UI should show a loading indicator.
   final bool isLoading;
 
+  /// Whether the UI is currently receiving a streamed response.
+  final bool isStreaming;
+
   /// Optional error message to display in the chat UI.
   final String? error;
 
-  const SimplexChatView({super.key, required this.messages, required this.onSend, this.isLoading = false, this.error});
+  const SimplexChatView({
+    super.key,
+    required this.messages,
+    required this.onSend,
+    this.isLoading = false,
+    this.isStreaming = false,
+    this.error,
+  });
 
   @override
   State<SimplexChatView> createState() => _SimplexChatViewState();
@@ -118,9 +128,13 @@ class _SimplexChatViewState extends State<SimplexChatView> {
     });
     // Replace markdown list markers (*, -) with a bullet dot (•)
     normalized = normalized.replaceAll(RegExp(r'^\s*[\*\-]\s+', multiLine: true), '• ');
-    // Clean up excessive newlines
+    // Clean up excessive newlines (3 or more) but keep single and double newlines
     normalized = normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-    return normalized.trim();
+
+    // For streaming, we want to avoid trimming trailing whitespace as it might be
+    // part of the next chunk (e.g., a space before the next word).
+    // We only trim the start.
+    return normalized.replaceFirst(RegExp(r'^\s+'), '');
   }
 
   @override

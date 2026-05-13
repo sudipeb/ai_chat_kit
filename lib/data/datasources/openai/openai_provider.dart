@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ai_chat_kit/core/models/chat_message.dart';
 import 'package:ai_chat_kit/domain/entities/ai_model_provider.dart';
 import 'package:dio/dio.dart';
@@ -67,6 +70,53 @@ class OpenAIProvider implements AIModelProvider {
           rethrow;
         }
         rethrow;
+      }
+    }
+  }
+
+  @override
+  Stream<String> streamMessage({
+    required String model,
+    required String prompt,
+    required List<ChatMessage> history,
+    Map<String, dynamic>? options,
+  }) async* {
+    final messages = _buildMessages(history, prompt);
+
+    final response = await dio.post(
+      '$baseUrl/chat/completions',
+      data: {
+        'model': model,
+        'messages': messages,
+        'temperature': options?['temperature'] ?? 0.7,
+        'max_tokens': options?['max_tokens'] ?? 1024,
+        'stream': true,
+      },
+      options: Options(
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
+        responseType: ResponseType.stream,
+      ),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('OpenAI API Error ${response.statusCode}');
+    }
+
+    final responseBody = response.data as ResponseBody;
+    await for (final chunk in responseBody.stream.cast<List<int>>().transform(utf8.decoder).transform(const LineSplitter())) {
+      if (chunk.trim().isEmpty) continue;
+      if (chunk.startsWith('data: ')) {
+        final data = chunk.substring(6).trim();
+        if (data == '[DONE]') break;
+        try {
+          final json = jsonDecode(data) as Map<String, dynamic>;
+          final delta = json['choices']?[0]?['delta']?['content'];
+          if (delta is String) {
+            yield delta;
+          }
+        } catch (_) {
+          // Ignore parse errors for partial chunks
+        }
       }
     }
   }

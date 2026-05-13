@@ -28,19 +28,38 @@ class ChatCubit extends Cubit<ChatState> {
     emit(ChatLoading(updatedMessages));
 
     try {
-      final responseText = await provider.sendMessage(model: model, prompt: text, history: updatedMessages);
+      final aiMessageId = (DateTime.now().millisecondsSinceEpoch + 1).toString();
+      String accumulatedResponse = '';
 
-      final aiMessage = ChatMessage(
-        id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
-        text: responseText,
-        role: MessageRole.ai,
-        createdAt: DateTime.now(),
-      );
+      final stream = provider.streamMessage(model: model, prompt: text, history: updatedMessages);
 
-      _logState('Transition ChatLoading -> ChatSuccess');
-      emit(ChatSuccess(List<ChatMessage>.from(updatedMessages)..add(aiMessage)));
+      await for (final chunk in stream) {
+        accumulatedResponse += chunk;
+
+        final aiMessage = ChatMessage(
+          id: aiMessageId,
+          text: accumulatedResponse,
+          role: MessageRole.ai,
+          createdAt: DateTime.now(),
+        );
+
+        // Replace or add the AI message in the list
+        final messagesWithAi = List<ChatMessage>.from(updatedMessages);
+        final existingIndex = messagesWithAi.indexWhere((m) => m.id == aiMessageId);
+        if (existingIndex != -1) {
+          messagesWithAi[existingIndex] = aiMessage;
+        } else {
+          messagesWithAi.add(aiMessage);
+        }
+
+        _logState('Transition -> ChatStreaming');
+        emit(ChatStreaming(messagesWithAi));
+      }
+
+      _logState('Transition ChatStreaming -> ChatSuccess');
+      emit(ChatSuccess(state.messages));
     } catch (e) {
-      _logState('Transition ChatLoading -> ChatError: $e');
+      _logState('Transition -> ChatError: $e');
       emit(ChatError(e.toString(), updatedMessages));
     }
   }

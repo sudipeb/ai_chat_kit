@@ -55,6 +55,21 @@ class MyAIProvider implements AIModelProvider {
     // Use the 'model' parameter to specify which model to use for this call
     return "This is a response from the AI.";
   }
+
+  @override
+  Stream<String> streamMessage({
+    required String model,
+    required String prompt,
+    required List<ChatMessage> history,
+    Map<String, dynamic>? options,
+  }) async* {
+    // Implement your streaming logic here
+    yield "This ";
+    yield "is ";
+    yield "a ";
+    yield "streamed ";
+    yield "response.";
+  }
 }
 ```
 

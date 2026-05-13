@@ -66,7 +66,7 @@ class AIChat {
 
     _history.add(
       ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
         text: response,
         role: MessageRole.ai,
         createdAt: DateTime.now(),
@@ -74,6 +74,39 @@ class AIChat {
     );
 
     return response;
+  }
+
+  /// Send a message and get a stream of response chunks
+  ///
+  /// [message] - The message to send
+  /// [options] - Optional parameters (temperature, max_tokens, etc.)
+  Stream<String> stream(String message, {Map<String, dynamic>? options}) async* {
+    final stream = _provider.streamMessage(model: _model, prompt: message, history: _history, options: options);
+
+    String fullResponse = '';
+    await for (final chunk in stream) {
+      fullResponse += chunk;
+      yield chunk;
+    }
+
+    // Add to history
+    _history.add(
+      ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: message,
+        role: MessageRole.user,
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    _history.add(
+      ChatMessage(
+        id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+        text: fullResponse,
+        role: MessageRole.ai,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   /// Clear conversation history
