@@ -9,8 +9,10 @@ class ChatPage extends SimplexBlocView<ChatCubit, ChatState> {
   @override
   Widget buildWidget(BuildContext context, ChatCubit cubit, ChatState state) {
     return SimplexChatView(
-        messages: state.messages,
-        onSend: cubit.sendMessage,
-        isLoading: state is ChatLoading);
+      messages: state.messages,
+      onSend: cubit.sendMessage,
+      isLoading: state is ChatLoading,
+      error: state is ChatError ? state.error : null,
+    );
   }
 }

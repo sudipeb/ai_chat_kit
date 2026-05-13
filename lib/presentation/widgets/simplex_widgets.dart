@@ -33,7 +33,10 @@ class SimplexChatView extends StatefulWidget {
   /// Whether the UI should show a loading indicator.
   final bool isLoading;
 
-  const SimplexChatView({super.key, required this.messages, required this.onSend, this.isLoading = false});
+  /// Optional error message to display in the chat UI.
+  final String? error;
+
+  const SimplexChatView({super.key, required this.messages, required this.onSend, this.isLoading = false, this.error});
 
   @override
   State<SimplexChatView> createState() => _SimplexChatViewState();
@@ -145,6 +148,27 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                       },
                     ),
                   ),
+                  if (widget.error != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(widget.error!, style: const TextStyle(color: Colors.red, fontSize: 14)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   if (widget.isLoading)
                     const Padding(padding: EdgeInsets.symmetric(vertical: 8.0), child: CircularProgressIndicator()),
                   Padding(

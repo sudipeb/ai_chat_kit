@@ -47,7 +47,21 @@ class OpenAIProvider implements AIModelProvider {
         }
 
         final data = response.data as Map<String, dynamic>;
-        return data['choices'][0]['message']['content'] as String;
+        final choice =
+            (data['choices'] as List?)?.firstWhere((element) => element != null, orElse: () => null)
+                as Map<String, dynamic>?;
+
+        final message = choice?['message']?['content'];
+        if (message is String) {
+          return message;
+        }
+
+        final textFallback = choice?['text'];
+        if (textFallback is String) {
+          return textFallback;
+        }
+
+        throw Exception('OpenAI response parsing failed: ${response.data}');
       } catch (e) {
         if (retryCount >= maxRetries) {
           rethrow;

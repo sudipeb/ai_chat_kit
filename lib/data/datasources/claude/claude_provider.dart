@@ -25,16 +25,14 @@ class ClaudeProvider implements AIModelProvider {
     while (true) {
       try {
         final response = await dio.post(
-          '$baseUrl/messages',
+          '$baseUrl/chat/completions',
           data: {
             'model': model,
             'messages': messages,
             'temperature': options?['temperature'] ?? 0.7,
             'max_tokens': options?['max_tokens'] ?? 1024,
           },
-          options: Options(
-            headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},
-          ),
+          options: Options(headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'}),
         );
 
         if (response.statusCode == 503 && retryCount < maxRetries) {
@@ -49,7 +47,17 @@ class ClaudeProvider implements AIModelProvider {
         }
 
         final data = response.data as Map<String, dynamic>;
-        return data['content'][0]['text'] as String;
+        final message = data['choices']?[0]?['message']?['content'];
+        if (message is String) {
+          return message;
+        }
+
+        final fallback = data['completion'] ?? data['output']?[0]?['content']?[0]?['text'];
+        if (fallback is String) {
+          return fallback;
+        }
+
+        throw Exception('Claude response parsing failed: ${response.data}');
       } catch (e) {
         if (retryCount >= maxRetries) {
           rethrow;
