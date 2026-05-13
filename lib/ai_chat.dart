@@ -9,7 +9,7 @@ import 'package:dio/dio.dart';
 enum AIProvider { openai, gemini, claude }
 
 /// Simple, one-line initialization for AI chat
-/// 
+///
 /// Usage:
 /// ```dart
 /// final chat = AIChat(token: 'your-api-token');
@@ -21,17 +21,12 @@ class AIChat {
   final List<ChatMessage> _history = [];
 
   /// Initialize AIChat with just a token
-  /// 
+  ///
   /// [token] - Your API token
   /// [provider] - Provider type (openai, gemini, claude). Auto-detected if not provided
   /// [model] - Model name. Defaults to recommended model for each provider
   /// [dio] - Optional Dio instance for custom HTTP configuration
-  AIChat({
-    required String token,
-    AIProvider? provider,
-    String? model,
-    Dio? dio,
-  }) {
+  AIChat({required String token, AIProvider? provider, String? model, Dio? dio}) {
     final detectedProvider = provider ?? _autoDetectProvider(token);
     final dioInstance = dio ?? Dio();
 
@@ -52,34 +47,30 @@ class AIChat {
   }
 
   /// Send a message and get a response
-  /// 
+  ///
   /// [message] - The message to send
   /// [options] - Optional parameters (temperature, max_tokens, etc.)
-  Future<String> send(
-    String message, {
-    Map<String, dynamic>? options,
-  }) async {
-    final response = await _provider.sendMessage(
-      model: _model,
-      prompt: message,
-      history: _history,
-      options: options,
-    );
+  Future<String> send(String message, {Map<String, dynamic>? options}) async {
+    final response = await _provider.sendMessage(model: _model, prompt: message, history: _history, options: options);
 
     // Add to history
-    _history.add(ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      text: message,
-      role: MessageRole.user,
-      createdAt: DateTime.now(),
-    ));
+    _history.add(
+      ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: message,
+        role: MessageRole.user,
+        createdAt: DateTime.now(),
+      ),
+    );
 
-    _history.add(ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      text: response,
-      role: MessageRole.ai,
-      createdAt: DateTime.now(),
-    ));
+    _history.add(
+      ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: response,
+        role: MessageRole.ai,
+        createdAt: DateTime.now(),
+      ),
+    );
 
     return response;
   }

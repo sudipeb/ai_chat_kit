@@ -32,9 +32,7 @@ class OpenAIProvider implements AIModelProvider {
             'temperature': options?['temperature'] ?? 0.7,
             'max_tokens': options?['max_tokens'] ?? 1024,
           },
-          options: Options(
-            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
-          ),
+          options: Options(headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'}),
         );
 
         if (response.statusCode == 503 && retryCount < maxRetries) {
