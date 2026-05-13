@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Simple package-level logging for AI chat state transitions.
 ///
 /// This logger does not depend on any third-party observer package; it
@@ -14,7 +16,7 @@ class AIChatLogger {
   /// Prints a log message only when logging is enabled.
   static void log(String message) {
     if (!enabled) return;
-    // Use plain print here to avoid requiring any extra logging package.
-    print('[AIChat] $message');
+    // Use debugPrint for proper Flutter debugging output
+    debugPrint('[AIChat] $message');
   }
 }

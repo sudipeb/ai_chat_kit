@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/logger/ai_chat_logger.dart';
 import '../../core/models/chat_message.dart';
 
 /// A base class for views that use a BLoC/Cubit.
@@ -44,19 +45,66 @@ class SimplexChatView extends StatefulWidget {
 
 class _SimplexChatViewState extends State<SimplexChatView> {
   final TextEditingController _controller = TextEditingController();
+  String _lastLoggedText = '';
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AIChatLogger.log('Chat view initialized');
+  }
 
   @override
   void dispose() {
+    AIChatLogger.log('Chat view disposed');
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Handles text input changes and logs typing events.
+  void _onTextChanged(String text) {
+    final trimmedText = text.trim();
+    final hasTextNow = trimmedText.isNotEmpty;
+
+    // Update button state
+    if (_hasText != hasTextNow) {
+      setState(() => _hasText = hasTextNow);
+      AIChatLogger.log('Send button ${_hasText ? 'enabled' : 'disabled'} (${trimmedText.length} characters)');
+    }
+
+    final lastTrimmedText = _lastLoggedText.trim();
+
+    // Log when user starts typing
+    if (_lastLoggedText.isEmpty && trimmedText.isNotEmpty) {
+      AIChatLogger.log('User started typing');
+    }
+    // Log when user clears input
+    else if (_lastLoggedText.isNotEmpty && trimmedText.isEmpty) {
+      AIChatLogger.log('User cleared input');
+    }
+    // Log significant text changes (every 10 characters or when hitting word boundaries)
+    else if (trimmedText.isNotEmpty && (trimmedText.length - lastTrimmedText.length).abs() >= 10) {
+      AIChatLogger.log('User typing: "${trimmedText.length} characters"');
+      _lastLoggedText = text;
+    }
+    // Log when user hits enter/space (potential message completion)
+    else if (text.endsWith('\n') || text.endsWith(' ')) {
+      _lastLoggedText = text;
+    }
   }
 
   /// Dispatches the current text input and clears the controller.
   void _handleSend() {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
+      AIChatLogger.log('Send button pressed with message: "${text.length} characters"');
       widget.onSend(text);
       _controller.clear();
+      _lastLoggedText = '';
+      setState(() => _hasText = false);
+      AIChatLogger.log('Input cleared after sending');
+    } else {
+      AIChatLogger.log('Send button pressed but input was empty (unexpected)');
     }
   }
 
@@ -77,6 +125,9 @@ class _SimplexChatViewState extends State<SimplexChatView> {
 
   @override
   Widget build(BuildContext context) {
+    AIChatLogger.log(
+      'Chat view rebuilding: ${widget.messages.length} messages, loading: ${widget.isLoading}, error: ${widget.error != null}',
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('AI Chat Assistant'), centerTitle: true),
       body: LayoutBuilder(
@@ -182,11 +233,12 @@ class _SimplexChatViewState extends State<SimplexChatView> {
                               hintText: 'Type a message...',
                               border: OutlineInputBorder(),
                             ),
+                            onChanged: _onTextChanged,
                             onSubmitted: (_) => _handleSend(),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        IconButton(icon: const Icon(Icons.send), onPressed: _handleSend),
+                        IconButton(icon: const Icon(Icons.send), onPressed: _hasText ? _handleSend : null),
                       ],
                     ),
                   ),
